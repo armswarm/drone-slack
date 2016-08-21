@@ -21,7 +21,5 @@ pipeline:
       event: push
 
   slack:
-    webhook: https://hooks.slack.com/services/...
-    channel: dev
-    username: drone
-    icon_url: https://avatars0.githubusercontent.com/u/2181346?v=3&s=200
+    when:
+      status: [ failure, success ]
