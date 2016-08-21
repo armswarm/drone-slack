@@ -1,0 +1,21 @@
+pipeline:
+  build:
+    image: armhfbuild/golang:1.6-alpine
+    environment:
+      - CGO_ENABLED=0
+    commands:
+      - export OUTPUT_PATH=${PWD}
+      - apk add --no-cache ca-certificates
+      - git clone https://github.com/drone-plugins/drone-slack $GOPATH/src/github.com/drone-plugins/drone-slack
+      - cd $GOPATH/src/github.com/drone-plugins/drone-slack
+      - go vet
+      - go test -cover -coverprofile=coverage.out
+      - go build -ldflags "-s -w -X main.build=$DRONE_BUILD_NUMBER" -a -tags netgo
+      - cp drone-slack ${OUTPUT_PATH}
+
+  docker:
+    repo: armswarmdrone/slack
+    tag: ["latest", "1.0", "1"]
+    when:
+      branch: master
+      event: push
