@@ -5,7 +5,7 @@ pipeline:
       - CGO_ENABLED=0
     commands:
       - export OUTPUT_PATH=${PWD}
-      - apk add --no-cache ca-certificates
+      - apk add --no-cache git ca-certificates
       - git clone https://github.com/drone-plugins/drone-slack $GOPATH/src/github.com/drone-plugins/drone-slack
       - cd $GOPATH/src/github.com/drone-plugins/drone-slack
       - go vet
@@ -19,3 +19,9 @@ pipeline:
     when:
       branch: master
       event: push
+
+  slack:
+    webhook: https://hooks.slack.com/services/...
+    channel: dev
+    username: drone
+    icon_url: https://avatars0.githubusercontent.com/u/2181346?v=3&s=200
