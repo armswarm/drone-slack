@@ -1,12 +1,15 @@
+clone:
+  git:
+    image: armswarmdrone/git
+
 pipeline:
   build:
-    image: armhfbuild/golang:1.6-alpine
+    image: quay.io/armswarm/golang:1.8-alpine
     environment:
       - CGO_ENABLED=0
     commands:
       - export OUTPUT_PATH=${PWD}
-      - apk add --no-cache git ca-certificates
-      - git clone https://github.com/drone-plugins/drone-slack $GOPATH/src/github.com/drone-plugins/drone-slack
+      - go get -d github.com/drone-plugins/drone-slack
       - cd $GOPATH/src/github.com/drone-plugins/drone-slack
       - go vet
       - go test -cover -coverprofile=coverage.out
@@ -14,17 +17,14 @@ pipeline:
       - cp drone-slack ${OUTPUT_PATH}
 
   docker:
-    repo: armswarmdrone/slack
-    build_args:
-      - VCS_REF=${DRONE_COMMIT_SHA}
-      - VCS_URL=${DRONE_REPO_LINK}
-      - BUILD_DATE=${DRONE_BUILD_CREATED}
-      - PROJECT_NAME=${DRONE_REPO}
-    tag: ["latest", "1.0", "1"]
+    image: armswarmdrone/docker
+    repo: quay.io/armswarm/drone-slack
+    tag: [ "1.0", "1", "latest" ]
     when:
       branch: master
       event: push
 
   slack:
+    image: armswarmdrone/slack
     when:
       status: [ failure, success ]
