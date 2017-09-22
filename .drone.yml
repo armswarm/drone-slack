@@ -6,30 +6,32 @@ workspace:
 
 clone:
   git:
-    image: armswarmdrone/git
+    image: quay.io/armswarm/drone-git
 
 pipeline:
   build:
-    image: quay.io/armswarm/golang:1.8-alpine
+    image: quay.io/armswarm/golang:1.9-alpine
     environment:
       - CGO_ENABLED=0
       - PACKAGE=github.com/drone-plugins/drone-slack
     commands:
-      - echo "${PACKAGE}"
-      - go get -d "${PACKAGE}"
-      - go vet "${PACKAGE}"
-      - go test -cover -coverprofile=coverage.out "${PACKAGE}"
-      - go build -ldflags "-s -w -X main.build=$DRONE_BUILD_NUMBER" -a -tags netgo -o "${PACKAGE##*/}" "${PACKAGE}"
+      - echo "$${PACKAGE}"
+      - go get -d "$${PACKAGE}"
+      - go vet "$${PACKAGE}"
+      - go test -cover -coverprofile=coverage.out "$${PACKAGE}"
+      - go build -v -ldflags "-s -w -X main.build=$DRONE_BUILD_NUMBER" -a -o "$${PACKAGE##*/}" "$${PACKAGE}"
 
   publish:
-    image: armswarmdrone/docker
+    image: quay.io/armswarm/drone-docker
+    secrets: [ docker_username, docker_password, docker_registry ]
     repo: quay.io/armswarm/drone-slack
-    tag: [ "1.0", "1", "latest" ]
+    tag: [ "1.1.0", "1.1", "1", "latest" ]
     when:
       branch: master
       event: push
 
   notify:
-    image: armswarmdrone/slack
+    image: quay.io/armswarm/drone-slack
+    secrets: [ slack_webhook, plugin_channel, plugin_template ]
     when:
       status: [ failure, success ]
